@@ -2,9 +2,6 @@ source "tmp/.config-target.in"
 
 # Kernel/Hardware features
 
-config HAS_TESTING_KERNEL
-	bool
-
 config HAS_SPE_FPU
 	depends on powerpc
 	select HAS_FPU
@@ -37,7 +34,8 @@ config USB_GADGET_SUPPORT
 	bool
 
 config RTC_SUPPORT
-	bool
+	tristate
+	depends on m
 
 config BIG_ENDIAN
 	bool

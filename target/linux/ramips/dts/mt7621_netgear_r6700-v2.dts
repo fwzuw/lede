@@ -12,6 +12,7 @@
 		led-failsafe = &led_power_orange;
 		led-running = &led_power_white;
 		led-upgrade = &led_power_orange;
+		label-mac-device = &ethernet;
 	};
 
 	leds {
@@ -102,12 +103,12 @@
 		};
 
 		wps {
-			gpios = <&gpio 17 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio0 17 GPIO_ACTIVE_HIGH>;
 			label = "r6700-v2:white:wps";
 		};
 
 		wlan {
-			gpios = <&gpio 5 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio0 5 GPIO_ACTIVE_LOW>;
 			label = "r6700-v2:white:wlan";
 		};
 	};
@@ -115,7 +116,7 @@
 
 &state_default {
 	gpio {
-		groups = "uart3", "uart2", "jtag", "wdt";
-		function = "gpio";
+		ralink,group = "uart3", "uart2", "jtag", "wdt";
+		ralink,function = "gpio";
 	};
 };

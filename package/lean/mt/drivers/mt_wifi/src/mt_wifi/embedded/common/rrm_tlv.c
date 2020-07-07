@@ -385,8 +385,8 @@ VOID RRM_InsertRequestIE(
 	IN PRTMP_ADAPTER pAd,
 	OUT PUCHAR pFrameBuf,
 	OUT PULONG pFrameLen,
-	IN  UINT8 ie_num,
-	IN  PUINT8 ie_list)
+	IN UINT8 ie_num,
+	IN PUINT8 ie_list)
 {
 	ULONG TempLen;
 	UINT8 IEId = IE_802_11D_REQUEST;
@@ -400,28 +400,6 @@ VOID RRM_InsertRequestIE(
 						END_OF_ARGS);
 	*pFrameLen = *pFrameLen + TempLen;
 	return;
-}
-
-VOID RRM_InsertRequestIE_11KV_API(
-	IN PRTMP_ADAPTER pAd,
-	OUT PUCHAR pFrameBuf,
-	OUT PULONG pFrameLen,
-	IN PUCHAR pRequest,
-	IN UINT8 RequestLen)
-{
-	ULONG TempLen = 0;
-	UINT8 IEId = IE_802_11D_REQUEST;
-	UINT8 Len = 0;
-
-	Len = RequestLen;
-
-	MakeOutgoingFrame(pFrameBuf,		&TempLen,
-						1,				&IEId,
-						1,				&Len,
-						Len,			pRequest,
-						END_OF_ARGS);
-
-	*pFrameLen = *pFrameLen + TempLen;
 }
 
 VOID RRM_InsertTxStreamReqIE(
@@ -563,13 +541,7 @@ VOID RRM_EnqueueBcnReq(
 		TotalLen += (FrameLen - FramelenTmp);
 	}
 
-	{
-		/* Adjust TotalLen of the Measurement Req while inserting
-		 * Bcn Report Indication*/
-		ULONG FramelenTmp = FrameLen;
-		InsertBcnReportIndicationReqIE(pAd, (pOutBuffer + FrameLen), &FrameLen, 1);
-		TotalLen += (FrameLen - FramelenTmp);
-	}
+	InsertBcnReportIndicationReqIE(pAd, (pOutBuffer + FrameLen), &FrameLen, 1);
 	/* Insert Action header here. */
 	{
 		ULONG tmpLen = sizeof(HEADER_802_11);

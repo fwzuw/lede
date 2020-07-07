@@ -33,7 +33,6 @@
 #endif
 
 #define IEEE80211_RADIOTAP_MT7615_RMAC 22
-#endif /* SNIFFER_MT7615 */
 
 UINT32 MT7615_CCK_Rate[] = {2, 4, 11, 22, 0, 4, 11, 22};
 UINT32 MT7615_OFDM_Rate[] = {96, 48, 24, 12, 108, 72, 36, 18};
@@ -42,7 +41,6 @@ UINT32 MT7615_OFDM_Rate[] = {96, 48, 24, 12, 108, 72, 36, 18};
 /* For reference number of AMPDU Status */
 static UINT32 ampdu_refno;
 
-#ifdef SNIFFER_MT7615
 void send_radiotap_mt7615_monitor_packets(
 	PNET_DEV pNetDev,
 	UCHAR *rmac_info,
@@ -65,7 +63,7 @@ void send_radiotap_mt7615_monitor_packets(
 #ifdef SNIFFER_MT7615_RMAC_INC
 	UCHAR *rmac_info_buffer;
 #endif
-	RMAC_STRUCT *rmac_str_info;
+	MT7615_RMAC_STRUCT *rmac_str_info;
 	UINT32 MacHdrLen = 0;
 	UINT32 HdrOffset = 0;
 	UINT32 TxMode = 0;
@@ -88,7 +86,7 @@ void send_radiotap_mt7615_monitor_packets(
 	UINT32 RxVSeq = 0;
 	UINT32 HtExtltf = 0;
 	UINT32 PayloadFmt = 0;
-	rmac_str_info = (RMAC_STRUCT *)rmac_info;
+	rmac_str_info = (MT7615_RMAC_STRUCT *)rmac_info;
 	MEM_DBG_PKT_FREE_INC(pRxPacket);
 	MacHdrLen = rmac_str_info->RxRMACBase.RxD1.MacHdrLen;
 	HdrOffset = rmac_str_info->RxRMACBase.RxD1.HdrOffset;
@@ -583,8 +581,6 @@ err_free_sk_buff:
 
 void send_radiotap_monitor_packets(
 	PNET_DEV pNetDev,
-	UINT8 AmsduState,
-	UCHAR *rmac_info,
 	PNDIS_PACKET pRxPacket,
 	VOID *fc_field,
 	UCHAR *pData,
@@ -604,22 +600,19 @@ void send_radiotap_monitor_packets(
 	UCHAR CentralChannel,
 	UCHAR sideband_index,
 	CHAR MaxRssi,
-	UINT32 timestamp,
-	UINT32 UP_value)
+	UINT32 timestamp)
 {
 	struct sk_buff *pOSPkt;
+	int rate_index = 0;
 	USHORT header_len = 0;
 	UCHAR temp_header[40] = {0};
 	struct mtk_radiotap_header *mtk_rt_hdr;
 	UINT32 varlen = 0, padding_len = 0;
 	UINT64 tmp64;
+	UINT32 tmp32;
 	UINT16 tmp16;
 	UCHAR *pos;
 	FC_FIELD fc = *((FC_FIELD *)fc_field);
-
-	RMAC_STRUCT *rmac_str_info;
-	rmac_str_info = (RMAC_STRUCT *)rmac_info;
-
 	MEM_DBG_PKT_FREE_INC(pRxPacket);
 #ifdef RT_BIG_ENDIAN
 	fc = SWAP16((UINT16)fc);
@@ -660,23 +653,14 @@ void send_radiotap_monitor_packets(
 			pData += header_len;
 	}
 
-	if (AmsduState) {
-		if (rmac_str_info->RxRMACBase.RxD1.HdrOffset == 1)
-			DataSize += 2;
-	}
-
 	if (DataSize < pOSPkt->len)
 		skb_trim(pOSPkt, DataSize);
+	else
+		skb_put(pOSPkt, (DataSize - pOSPkt->len));
 
 	if ((pData - pOSPkt->data) > 0) {
 		skb_put(pOSPkt, (pData - pOSPkt->data));
 		skb_pull(pOSPkt, (pData - pOSPkt->data));
-	}
-
-	if (AmsduState) {
-		if (rmac_str_info->RxRMACBase.RxD1.HdrOffset == 1) {
-			pOSPkt->data += 2;
-		}
 	}
 
 	if (skb_headroom(pOSPkt) < (sizeof(*mtk_rt_hdr) + header_len)) {
@@ -706,9 +690,6 @@ void send_radiotap_monitor_packets(
 	varlen += (2 + padding_len);
 	/* channel flags */
 	varlen += 2;
-
-	/* dBm ANT Signal */
-	varlen += 1;
 
 	/* MCS */
 	if ((PHYMODE == MODE_HTMIX) || (PHYMODE == MODE_HTGREENFIELD)) {
@@ -752,7 +733,6 @@ void send_radiotap_monitor_packets(
 		varlen += 2;
 	}
 
-	varlen += 8; /* MTK OUI */
 	mtk_rt_hdr = (struct mtk_radiotap_header *)skb_push(pOSPkt, sizeof(*mtk_rt_hdr) + varlen);
 	NdisZeroMemory(mtk_rt_hdr, sizeof(*mtk_rt_hdr) + varlen);
 	mtk_rt_hdr->rt_hdr.it_version = PKTHDR_RADIOTAP_VERSION;
@@ -762,25 +742,25 @@ void send_radiotap_monitor_packets(
 										(1 << IEEE80211_RADIOTAP_TSFT) |
 										(1 << IEEE80211_RADIOTAP_FLAGS));
 
-	if (rmac_str_info->RxRMACGrp3.rxd_14.TxMode < MODE_HTMIX)
+	if (PHYMODE < MODE_HTMIX)
 		mtk_rt_hdr->rt_hdr.it_present |= cpu2le32(1 << IEEE80211_RADIOTAP_RATE);
 
 	mtk_rt_hdr->rt_hdr.it_present |= cpu2le32(1 << IEEE80211_RADIOTAP_CHANNEL);
-	mtk_rt_hdr->rt_hdr.it_present |= cpu2le32(1 << IEEE80211_RADIOTAP_DBM_ANTSIGNAL);
 
-	if ((rmac_str_info->RxRMACGrp3.rxd_14.TxMode == MODE_HTMIX) ||
-		(rmac_str_info->RxRMACGrp3.rxd_14.TxMode == MODE_HTGREENFIELD))
+	if ((PHYMODE == MODE_HTMIX) || (PHYMODE == MODE_HTGREENFIELD))
 		mtk_rt_hdr->rt_hdr.it_present |= cpu2le32(1 << IEEE80211_RADIOTAP_MCS);
 
-	if (!(rmac_str_info->RxRMACBase.RxD2.NonAmpduFrm) || !(rmac_str_info->RxRMACBase.RxD2.NonAmpduSfrm))
+	if (AMPDU)
 		mtk_rt_hdr->rt_hdr.it_present |= cpu2le32(1 << IEEE80211_RADIOTAP_AMPDU_STATUS);
 
-	if (rmac_str_info->RxRMACGrp3.rxd_14.TxMode == MODE_VHT)
+	if (PHYMODE == MODE_VHT)
 		mtk_rt_hdr->rt_hdr.it_present |= cpu2le32(1 << IEEE80211_RADIOTAP_VHT);
 
 	varlen = 0;
 	pos = mtk_rt_hdr->variable;
-
+	padding_len = ((varlen % 8) == 0) ? 0 : (8 - (varlen % 8));
+	pos += padding_len;
+	varlen += padding_len;
 	/* tsf */
 	tmp64 = timestamp;
 	NdisMoveMemory(pos, &tmp64, 8);
@@ -788,32 +768,19 @@ void send_radiotap_monitor_packets(
 	varlen += 8;
 	/* flags */
 	*pos = 0;
-
-	/* Short Preamble */
-	if ((rmac_str_info->RxRMACGrp3.rxd_14.TxMode == MODE_CCK) &&
-		((rmac_str_info->RxRMACGrp3.rxd_14.TxRate & 0x07) > 4))
-		*pos |= IEEE80211_RADIOTAP_F_SHORTPRE;
-	/* Fragmentation */
-	if (rmac_str_info->RxRMACBase.RxD2.FragFrm)
-		*pos |= IEEE80211_RADIOTAP_F_FRAG;
-	/* Bad FCS */
-	if (rmac_str_info->RxRMACBase.RxD2.FcsErr)
-		*pos |= IEEE80211_RADIOTAP_F_BADFCS;
-	/* Short GI */
-	if (rmac_str_info->RxRMACGrp3.rxd_14.HtShortGi)
-		*pos |= IEEE80211_RADIOTAP_F_SHORTGI;
-
 	pos++;
 	varlen++;
 
 	/* rate */
-	if (rmac_str_info->RxRMACGrp3.rxd_14.TxMode == MODE_OFDM) {
-				*pos = (UCHAR)MT7615_OFDM_Rate[(rmac_str_info->RxRMACGrp3.rxd_14.TxRate & 0x07)];
-				pos++;
+	if (PHYMODE == MODE_OFDM) {
+		rate_index = (UCHAR)(MCS) + 4;
+		*pos = ralinkrate[rate_index];
+		pos++;
 		varlen++;
-	} else if (rmac_str_info->RxRMACGrp3.rxd_14.TxMode == MODE_CCK) {
-				*pos = (UCHAR)MT7615_CCK_Rate[(rmac_str_info->RxRMACGrp3.rxd_14.TxRate & 0x07)];
-				pos++;
+	} else if (PHYMODE == MODE_CCK) {
+		rate_index = (UCHAR)(MCS);
+		*pos = ralinkrate[rate_index];
+		pos++;
 		varlen++;
 	}
 
@@ -825,15 +792,15 @@ void send_radiotap_monitor_packets(
 	(((x) <= 14) ? \
 	 (((x) == 14) ? 2484 : ((x) * 5) + 2407) : \
 	 ((x) + 1000) * 5)
-	tmp16 = cpu2le16(ieee80211chan2mhz(rmac_str_info->RxRMACBase.RxD1.ChFreq));
+	tmp16 = cpu2le16(ieee80211chan2mhz(Channel));
 	NdisMoveMemory(pos, &tmp16, 2);
 	pos += 2;
 	varlen += 2;
 
-	if (rmac_str_info->RxRMACBase.RxD1.ChFreq > 14)
+	if (Channel > 14)
 		tmp16 = cpu2le16((IEEE80211_CHAN_OFDM | IEEE80211_CHAN_5GHZ));
 	else {
-		if (rmac_str_info->RxRMACGrp3.rxd_14.TxMode == MODE_CCK)
+		if (PHYMODE == MODE_CCK)
 			tmp16 = cpu2le16(IEEE80211_CHAN_CCK | IEEE80211_CHAN_2GHZ);
 		else
 			tmp16 = cpu2le16(IEEE80211_CHAN_OFDM | IEEE80211_CHAN_2GHZ);
@@ -843,68 +810,48 @@ void send_radiotap_monitor_packets(
 	pos += 2;
 	varlen += 2;
 
-	/* dBm ANT Signal */
-	*pos = MaxRssi;
-	pos++;
-	varlen++;
-
 	/* HT MCS */
-	if ((rmac_str_info->RxRMACGrp3.rxd_14.TxMode == MODE_HTMIX) ||
-		(rmac_str_info->RxRMACGrp3.rxd_14.TxMode == MODE_HTGREENFIELD)) {
+	if ((PHYMODE == MODE_HTMIX) || (PHYMODE == MODE_HTGREENFIELD)) {
 		*pos = (IEEE80211_RADIOTAP_MCS_HAVE_BW |
 				IEEE80211_RADIOTAP_MCS_HAVE_MCS |
 				IEEE80211_RADIOTAP_MCS_HAVE_GI |
 				IEEE80211_RADIOTAP_MCS_HAVE_FMT |
-				IEEE80211_RADIOTAP_MCS_HAVE_FEC |
-				IEEE80211_RADIOTAP_MCS_HAVE_STBC);
-		/* Ness Known */
-		*pos |= (1 << 6);
-		/* Ness data - bit 1 (MSB) of Number of extension spatial streams */
-		*pos |= (rmac_str_info->RxRMACGrp3.rxd_14.HtExtltf << 6) & 0x80;
+				IEEE80211_RADIOTAP_MCS_HAVE_FEC);
 		pos++;
 		varlen++;
 
 		/* BW */
-		if (rmac_str_info->RxRMACGrp3.rxd_14.FrMode == 0)
+		if (BW == 0)
 			*pos = HT_BW(IEEE80211_RADIOTAP_MCS_BW_20);
 		else
 			*pos = HT_BW(IEEE80211_RADIOTAP_MCS_BW_40);
 
 		/* HT GI */
-		*pos |= HT_GI(rmac_str_info->RxRMACGrp3.rxd_14.HtShortGi);
+		*pos |= HT_GI(ShortGI);
 
 		/* HT format */
-		if (rmac_str_info->RxRMACGrp3.rxd_14.TxMode == MODE_HTMIX)
+		if (PHYMODE == MODE_HTMIX)
 			*pos |= HT_FORMAT(0);
-		else if (rmac_str_info->RxRMACGrp3.rxd_14.TxMode == MODE_HTGREENFIELD)
+		else if (PHYMODE == MODE_HTGREENFIELD)
 			*pos |= HT_FORMAT(1);
 
 		/* HT FEC type */
-		*pos |= HT_FEC_TYPE(rmac_str_info->RxRMACGrp3.rxd_14.HtAdCode);
-
-		/* Number of STBC streams */
-		*pos |= ((rmac_str_info->RxRMACGrp3.rxd_14.HtStbc) << 5) & 0x60;
-
-		/* Ness data - bit 0 (LSB) of Number of extension spatial streams */
-		*pos |= (rmac_str_info->RxRMACGrp3.rxd_14.HtExtltf & 0x1) << 7;
+		*pos |= HT_FEC_TYPE(LDPC);
 		pos++;
 		varlen++;
 		/* HT mcs index */
-		*pos = rmac_str_info->RxRMACGrp3.rxd_14.TxRate;
+		*pos = MCS;
 		pos++;
 		varlen++;
 	}
 
-	if (!(rmac_str_info->RxRMACBase.RxD2.NonAmpduFrm) || !(rmac_str_info->RxRMACBase.RxD2.NonAmpduSfrm)) {
+	if (AMPDU) {
 		/* reference number */
 		padding_len = ((varlen % 4) == 0) ? 0 : (4 - (varlen % 4));
 		varlen += padding_len;
 		pos += padding_len;
-
-		ampdu_refno = rmac_str_info->RxRMACBase.RxD3.RxVSeq ?
-				rmac_str_info->RxRMACBase.RxD3.RxVSeq : ampdu_refno;
-
-		NdisMoveMemory(pos, &ampdu_refno, 4);
+		tmp32 = 0;
+		NdisMoveMemory(pos, &tmp32, 4);
 		pos += 4;
 		varlen += 2;
 		/* flags */
@@ -931,127 +878,64 @@ void send_radiotap_monitor_packets(
 		varlen += padding_len;
 		pos += padding_len;
 		tmp16 = cpu2le16(IEEE80211_RADIOTAP_VHT_KNOWN_STBC |
-						 IEEE80211_RADIOTAP_VHT_KNOWN_TXOP_PS_NA |
 						 IEEE80211_RADIOTAP_VHT_KNOWN_GI |
-						 IEEE80211_RADIOTAP_VHT_KNOWN_SGI_NSYM_DIS |
 						 IEEE80211_RADIOTAP_VHT_KNOWN_LDPC_EXTRA_OFDM_SYM |
-						 IEEE80211_RADIOTAP_VHT_KNOWN_BANDWIDTH |
-						 IEEE80211_RADIOTAP_VHT_KNOWN_GROUP_ID);
-
-		if ((rmac_str_info->RxRMACGrp3.rxd_15.GroupId == 0) || (rmac_str_info->RxRMACGrp3.rxd_15.GroupId == 63))
-			tmp16 |= cpu2le16(IEEE80211_RADIOTAP_VHT_KNOWN_BEAMFORMED |
-					IEEE80211_RADIOTAP_VHT_KNOWN_PARTIAL_AID);
+						 IEEE80211_RADIOTAP_VHT_KNOWN_BANDWIDTH);
 		NdisMoveMemory(pos, &tmp16, 2);
 		pos += 2;
 		varlen += 2;
 		/* flags */
-
-		/* VHT STBC is present in HtStbc Bit 0 */
-		*pos = ((rmac_str_info->RxRMACGrp3.rxd_14.HtStbc & 0x1) ? IEEE80211_RADIOTAP_VHT_FLAG_STBC : 0);
-		/* TXOP PS Not Allowed */
-		*pos |= ((rmac_str_info->RxRMACGrp3.rxd_14.VHTA1_B22) ? IEEE80211_RADIOTAP_VHT_FLAG_TXOP_PS_NA : 0);
-		/* Short GI */
-		*pos |= (rmac_str_info->RxRMACGrp3.rxd_14.HtShortGi ? IEEE80211_RADIOTAP_VHT_FLAG_SGI : 0);
-		/* Short GI NSYM disambiguation (Present in Bit 0 of VHT_SIG_A2[B2:B1] */
-		*pos |= ((rmac_str_info->RxRMACGrp3.rxd_20.VHT_A2 & 0x1) ?
-			IEEE80211_RADIOTAP_VHT_FLAG_SGI_NSYM_M10_9 : 0);
-		/* LDPC Extra OFDM symbol (Present in Bit 0 of VHT_SIG_A2[B8:B3] */
-		*pos |= ((rmac_str_info->RxRMACGrp3.rxd_14.VHTA2_B8_B3 & 0x01) ?
-			IEEE80211_RADIOTAP_VHT_FLAG_LDPC_EXTRA_OFDM_SYM : 0);
-		/* Beamformed (For SU), (Present in Bit 5 of VHT_SIG_A2[B8:B3] */
-		if ((rmac_str_info->RxRMACGrp3.rxd_15.GroupId == 0) || (rmac_str_info->RxRMACGrp3.rxd_15.GroupId == 63))
-			*pos |= ((rmac_str_info->RxRMACGrp3.rxd_14.VHTA2_B8_B3 & 0x20) ?
-				IEEE80211_RADIOTAP_VHT_FLAG_BEAMFORMED : 0);
+		*pos = (STBC ? IEEE80211_RADIOTAP_VHT_FLAG_STBC : 0);
+		*pos |= (ShortGI ? IEEE80211_RADIOTAP_VHT_FLAG_SGI : 0);
+		*pos |= (LDPC_EX_SYM ? IEEE80211_RADIOTAP_VHT_FLAG_LDPC_EXTRA_OFDM_SYM : 0);
 		pos++;
 		varlen++;
 
 		/* bandwidth */
-		if (rmac_str_info->RxRMACGrp3.rxd_14.FrMode == 0)
+		if (BW == 0)
 			*pos = 0;
-		else if (rmac_str_info->RxRMACGrp3.rxd_14.FrMode == 1)
+		else if (BW == 1)
 			*pos = 1;
-		else if (rmac_str_info->RxRMACGrp3.rxd_14.FrMode == 2)
+		else if (BW == 2) {
 			*pos = 4;
-		else
-			*pos = 11;
+		} else
+			MTWF_LOG(DBG_CAT_RX, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("%s:unknow bw(%d)\n", __func__, BW));
 
 		/* mcs_nss */
 		pos++;
 		varlen++;
-		/* vht_mcs_nss[0] and MCS */
-		if ((rmac_str_info->RxRMACGrp3.rxd_15.GroupId == 0) ||
-			(rmac_str_info->RxRMACGrp3.rxd_15.GroupId == 63)) {
-			/* Nsts for SU Data */
-			*pos = (rmac_str_info->RxRMACGrp3.rxd_16.VHTA1_B21_B10 & 0x007) + 1;
-			/* MCS for SU Data */
-			*pos |= (GET_VHT_MCS(rmac_str_info->RxRMACGrp3.rxd_14.TxRate) << 4);
-		} else {
-			/* Nsts for MU Data */
-			*pos = (rmac_str_info->RxRMACGrp3.rxd_16.VHTA1_B21_B10 & 0x007);
-			/*
-			* TODO: MCS for MU-MIMO will be received in VHT-SIG-B,
-			* but this is not passed to RMAC/RXV, So, keeping MCS 0
-			*/
-			if (UP_value == 0)
-				*pos |= (GET_VHT_MCS(rmac_str_info->RxRMACGrp3.rxd_14.TxRate) << 4);
-			else
-				*pos |= 0;
-		}
+		/* vht_mcs_nss[0] */
+		*pos = (GET_VHT_NSS(MCS) & 0x0f);
+		*pos |= ((GET_VHT_MCS(MCS) & 0x0f) << 4);
 		pos++;
 		varlen++;
 		/* vht_mcs_nss[1] */
 		*pos = 0;
-		if ((rmac_str_info->RxRMACGrp3.rxd_15.GroupId > 0) && (rmac_str_info->RxRMACGrp3.rxd_15.GroupId < 63)) {
-			*pos = (rmac_str_info->RxRMACGrp3.rxd_16.VHTA1_B21_B10 & 0x038) >> 3;
-			if (UP_value == 1)
-				*pos |= (GET_VHT_MCS(rmac_str_info->RxRMACGrp3.rxd_14.TxRate) << 4);
-			else
-				*pos |= 0;
-		}
 		pos++;
 		varlen++;
 		/* vht_mcs_nss[2] */
 		*pos = 0;
-		if ((rmac_str_info->RxRMACGrp3.rxd_15.GroupId > 0) && (rmac_str_info->RxRMACGrp3.rxd_15.GroupId < 63)) {
-			*pos = (rmac_str_info->RxRMACGrp3.rxd_16.VHTA1_B21_B10 & 0x1c0) >> 6;
-			if (UP_value == 2)
-				*pos |= (GET_VHT_MCS(rmac_str_info->RxRMACGrp3.rxd_14.TxRate) << 4);
-			else
-				*pos |= 0;
-			/* TODO: MCS */
-		}
 		pos++;
 		varlen++;
 		/* vht_mcs_nss[3] */
 		*pos = 0;
-		if ((rmac_str_info->RxRMACGrp3.rxd_15.GroupId > 0) && (rmac_str_info->RxRMACGrp3.rxd_15.GroupId < 63)) {
-			*pos = (rmac_str_info->RxRMACGrp3.rxd_16.VHTA1_B21_B10 & 0xe00) >> 9;
-			if (UP_value == 3)
-				*pos |= (GET_VHT_MCS(rmac_str_info->RxRMACGrp3.rxd_14.TxRate) << 4);
-			else
-				*pos |= 0;
-			/* TODO: MCS */
-		}
 		pos++;
 		varlen++;
 
 		/* coding */
+		if (LDPC)
+			*pos = 1;
+		else
 			*pos = 0;
-		if (rmac_str_info->RxRMACGrp3.rxd_14.HtAdCode)
-			*pos |= 1;
-		if ((rmac_str_info->RxRMACGrp3.rxd_15.GroupId > 0) && (rmac_str_info->RxRMACGrp3.rxd_15.GroupId < 63))
-			*pos |= (rmac_str_info->RxRMACGrp3.rxd_14.VHTA2_B8_B3 & 0x0e);
 
 		pos++;
 		varlen++;
 		/* group_id */
-		*pos = rmac_str_info->RxRMACGrp3.rxd_15.GroupId;
+		*pos = 0;
 		pos++;
 		varlen++;
 		/* partial aid */
 		tmp16 = 0;
-		if ((rmac_str_info->RxRMACGrp3.rxd_15.GroupId == 0) || (rmac_str_info->RxRMACGrp3.rxd_15.GroupId == 63))
-			tmp16 = rmac_str_info->RxRMACGrp3.rxd_16.VHTA1_B21_B10;
 		NdisMoveMemory(pos, &tmp16, 2);
 		pos += 2;
 		varlen += 2;
@@ -1059,7 +943,7 @@ void send_radiotap_monitor_packets(
 
 #endif /* DOT11_VHT_AC */
 	pOSPkt->dev = pOSPkt->dev;
-	pOSPkt->mac_header = pOSPkt->data;
+	pOSPkt->mac_header = (UINT)pOSPkt->data;
 	pOSPkt->pkt_type = PACKET_OTHERHOST;
 	pOSPkt->protocol = __constant_htons(ETH_P_80211_RAW);
 	pOSPkt->ip_summed = CHECKSUM_NONE;
@@ -1075,25 +959,20 @@ VOID Monitor_Init(RTMP_ADAPTER *pAd, RTMP_OS_NETDEV_OP_HOOK *pNetDevOps)
 	PNET_DEV new_dev_p;
 	INT idx = 0;
 	struct wifi_dev *wdev;
-	char *dev_name;
 	UINT32 MC_RowID = 0, IoctlIF = 0;
+	char *dev_name;
 
-
-	for (idx = 0; idx < MONITOR_MAX_DEV_NUM; idx++) {
-
-		if (pAd->monitor_ctrl[idx].bMonitorInitiated != FALSE) {
+	if (pAd->monitor_ctrl.bMonitorInitiated != FALSE) {
 		MTWF_LOG(DBG_CAT_CFG, DBG_SUBCAT_ALL, DBG_LVL_ERROR, ("monitor interface already initiated.\n"));
 		return;
 	}
-		MC_RowID = 0;
-		IoctlIF = 0;
+
 #ifdef MULTIPLE_CARD_SUPPORT
 	MC_RowID = pAd->MC_RowID;
 #endif /* MULTIPLE_CARD_SUPPORT */
-
 	dev_name = get_dev_name_prefix(pAd, INT_MONITOR);
 	/* dev_name = "mon"; */
-		new_dev_p = RtmpOSNetDevCreate(MC_RowID, &IoctlIF, INT_MONITOR, idx, sizeof(struct mt_dev_priv), dev_name, TRUE);
+	new_dev_p = RtmpOSNetDevCreate(MC_RowID, &IoctlIF, INT_MONITOR, idx, sizeof(struct mt_dev_priv), dev_name);
 
 	if (!new_dev_p) {
 		MTWF_LOG(DBG_CAT_CFG, DBG_SUBCAT_ALL, DBG_LVL_ERROR,
@@ -1101,7 +980,7 @@ VOID Monitor_Init(RTMP_ADAPTER *pAd, RTMP_OS_NETDEV_OP_HOOK *pNetDevOps)
 		return;
 	}
 
-		wdev = &pAd->monitor_ctrl[idx].wdev;
+	wdev = &pAd->monitor_ctrl.wdev;
 	wdev->sys_handle = (void *)pAd;
 	wdev->if_dev = new_dev_p;
 	RTMP_OS_NETDEV_SET_PRIV(new_dev_p, pAd);
@@ -1114,8 +993,6 @@ VOID Monitor_Init(RTMP_ADAPTER *pAd, RTMP_OS_NETDEV_OP_HOOK *pNetDevOps)
 		return;
 	}
 
-		MTWF_LOG(DBG_CAT_CFG, DBG_SUBCAT_ALL, DBG_LVL_OFF,
-					 ("-->%s(): Create net_device for %s\n", __func__, wdev->if_dev));
 	/* init MAC address of virtual network interface */
 	COPY_MAC_ADDR(wdev->if_addr, pAd->CurrentAddress);
 	pNetDevOps->priv_flags = INT_MONITOR; /* we are virtual interface */
@@ -1124,46 +1001,31 @@ VOID Monitor_Init(RTMP_ADAPTER *pAd, RTMP_OS_NETDEV_OP_HOOK *pNetDevOps)
 	NdisMoveMemory(pNetDevOps->devAddr, &wdev->if_addr[0], MAC_ADDR_LEN);
 	/* register this device to OS */
 	RtmpOSNetDevAttach(pAd->OpMode, new_dev_p, pNetDevOps);
-
-		pAd->monitor_ctrl[idx].bMonitorInitiated = TRUE;
-		pAd->monitor_ctrl[idx].MacFilterOn = FALSE;
-	}
+	pAd->monitor_ctrl.bMonitorInitiated = TRUE;
 	return;
 }
 
 
 VOID Monitor_Remove(RTMP_ADAPTER *pAd)
 {
-INT idx;
-
-	for (idx = 0; idx < MONITOR_MAX_DEV_NUM; idx++) {
 	struct wifi_dev *wdev;
-		wdev = &pAd->monitor_ctrl[idx].wdev;
-		MTWF_LOG(DBG_CAT_CFG, DBG_SUBCAT_ALL, DBG_LVL_OFF,
-							 ("-->%s(): Remove net_device for %s\n", __func__, wdev->if_dev));
+	wdev = &pAd->monitor_ctrl.wdev;
 
 	if (wdev->if_dev) {
 		RtmpOSNetDevProtect(1);
 		RtmpOSNetDevDetach(wdev->if_dev);
 		RtmpOSNetDevProtect(0);
-		wdev_idx_unreg(pAd, wdev);
+		wdev_deinit(pAd, wdev);
 		RtmpOSNetDevFree(wdev->if_dev);
 		wdev->if_dev = NULL;
-			pAd->monitor_ctrl[idx].bMonitorInitiated = FALSE;
-		}
+		pAd->monitor_ctrl.bMonitorInitiated = FALSE;
 	}
 }
 BOOLEAN Monitor_Open(RTMP_ADAPTER *pAd, PNET_DEV dev_p)
 {
-INT idx;
+	if (pAd->monitor_ctrl.wdev.if_dev == dev_p)
+		RTMP_OS_NETDEV_SET_TYPE(pAd->monitor_ctrl.wdev.if_dev, ARPHRD_IEEE80211_RADIOTAP);
 
-	for (idx = 0; idx < MONITOR_MAX_DEV_NUM; idx++) {
-		if (pAd->monitor_ctrl[idx].wdev.if_dev == dev_p) {
-			RTMP_OS_NETDEV_SET_TYPE(pAd->monitor_ctrl[idx].wdev.if_dev, ARPHRD_IEEE80211_RADIOTAP);
-		MTWF_LOG(DBG_CAT_CFG, DBG_SUBCAT_ALL, DBG_LVL_OFF,
-							 ("-->%s(): Open net_device for %s\n", __func__, dev_p));
-		}
-	}
 	return TRUE;
 }
 
@@ -1173,16 +1035,11 @@ BOOLEAN Monitor_Close(RTMP_ADAPTER *pAd, PNET_DEV dev_p)
 #ifdef CONFIG_HW_HAL_OFFLOAD
 	struct _EXT_CMD_SNIFFER_MODE_T SnifferFWCmd;
 #endif /* CONFIG_HW_HAL_OFFLOAD */
-INT idx;
 
-	for (idx = 0; idx < MONITOR_MAX_DEV_NUM; idx++) {
-
-		if (pAd->monitor_ctrl[idx].wdev.if_dev == dev_p) {
-			MTWF_LOG(DBG_CAT_CFG, DBG_SUBCAT_ALL, DBG_LVL_OFF,
-							 ("-->%s(): Close net_device for %s\n", __func__, dev_p));
+	if (pAd->monitor_ctrl.wdev.if_dev == dev_p) {
 		/* RTMP_OS_NETDEV_STOP_QUEUE(dev_p); */
 		/* resume normal settings */
-			pAd->monitor_ctrl[idx].bMonitorOn = FALSE;
+		pAd->monitor_ctrl.bMonitorOn = FALSE;
 #ifdef CONFIG_HW_HAL_OFFLOAD
 		SnifferFWCmd.ucDbdcIdx = 0;
 		SnifferFWCmd.ucSnifferEn = 0;
@@ -1191,7 +1048,6 @@ INT idx;
 		AsicSetRxFilter(pAd);
 #endif /* CONFIG_HW_HAL_OFFLOAD */
 		return TRUE;
-	}
 	}
 
 	return FALSE;

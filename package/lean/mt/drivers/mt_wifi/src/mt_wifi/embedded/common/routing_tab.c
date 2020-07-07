@@ -423,9 +423,6 @@ PROUTING_ENTRY RoutingTabLookup(
 				if (bUpdateAliveTime) {
 					RoutingEntryRefresh(pAd, ifIndex, pRoutingEntry);
 					pRoutingEntry->Retry = 0;
-#ifdef A4_CONN
-					pRoutingEntry->NeedRefresh = FALSE;
-#endif
 				}
 
 				if (pWcid)
@@ -570,25 +567,11 @@ VOID RoutingTabMaintain(
 			bCreateARP = FALSE;
 			bNeedDelete = FALSE;
 			pRoutingEntryNext = pRoutingEntry->pNext;
-#ifdef A4_CONN
-			if (pAd->a4_need_refresh)
-				pRoutingEntry->NeedRefresh = TRUE;
-#endif
 			/* Stage 1 Check*/
-			if ((pRoutingEntry->Valid &&
-				RTMP_TIME_AFTER(Now, pRoutingEntry->KeepAliveTime) &&
-				(pRoutingEntry->IPAddr != 0))
-#ifdef A4_CONN
-				|| pRoutingEntry->NeedRefresh
-#endif
-				) {
+			if (pRoutingEntry->Valid && RTMP_TIME_AFTER(Now, pRoutingEntry->KeepAliveTime) && pRoutingEntry->IPAddr != 0) {
 				if (bBridgeFound) {
 					/* Stage 2 Check*/
-					if (pRoutingEntry->Retry == 0 || RTMP_TIME_AFTER(Now, pRoutingEntry->RetryTime)
-#ifdef A4_CONN
-						|| pRoutingEntry->NeedRefresh
-#endif
-						) {
+					if (pRoutingEntry->Retry == 0 || RTMP_TIME_AFTER(Now, pRoutingEntry->RetryTime)) {
 						if (pRoutingEntry->Retry >= ROUTING_ENTRY_MAX_RETRY)
 							bNeedDelete = TRUE;
 						else {

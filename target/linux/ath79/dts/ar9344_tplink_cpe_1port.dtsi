@@ -41,5 +41,7 @@
 };
 
 &eth1 {
+	status = "okay";
+
 	compatible = "syscon", "simple-mfd";
 };

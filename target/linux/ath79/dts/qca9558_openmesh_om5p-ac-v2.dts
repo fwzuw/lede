@@ -4,10 +4,10 @@
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
 
-#include "qca955x.dtsi"
+#include "qca9557.dtsi"
 
 / {
-	compatible = "openmesh,om5p-ac-v2", "qca,qca9558";
+	compatible = "openmesh,om5p-ac-v2", "qca,qca9557";
 	model = "OpenMesh OM5P-AC V2";
 
 	extosc: ref {

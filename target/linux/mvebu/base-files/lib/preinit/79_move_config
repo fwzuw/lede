@@ -1,3 +1,4 @@
+#!/bin/sh
 # Copyright (C) 2015 OpenWrt.org
 
 . /lib/functions.sh
@@ -17,7 +18,7 @@ move_config() {
 		esac
 		mkdir -p /boot
 		mount -o rw,noatime "/dev/$partdev" /boot
-		[ -f "/boot/$BACKUP_FILE" ] && mv -f "/boot/$BACKUP_FILE" /
+		[ -f /boot/sysupgrade.tgz ] && mv -f /boot/sysupgrade.tgz /
 		umount /boot
 	fi
 }

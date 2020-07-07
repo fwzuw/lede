@@ -157,13 +157,13 @@
 &pinctrl {
 	state_default: pinctrl0 {
 		gpio {
-			groups = "rgmii1";
-			function = "gpio";
+			ralink,group = "rgmii1";
+			ralink,function = "gpio";
 		};
 
 		pa {
-			groups = "pa";
-			function = "pa";
+			ralink,group = "pa";
+			ralink,function = "pa";
 		};
 	};
 };

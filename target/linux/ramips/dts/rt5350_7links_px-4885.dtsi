@@ -43,8 +43,8 @@
 
 &state_default {
 	gpio {
-		groups = "i2c", "jtag", "uartf";
-		function = "gpio";
+		ralink,group = "i2c", "jtag", "uartf";
+		ralink,function = "gpio";
 	};
 };
 
@@ -57,5 +57,5 @@
 };
 
 &wmac {
-	ralink,mtd-eeprom = <&devconf 0x0>;
+	ralink,mtd-eeprom = <&devconf 0>;
 };

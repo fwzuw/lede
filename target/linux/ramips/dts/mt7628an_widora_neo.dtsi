@@ -32,7 +32,7 @@
 
 		wps {
 			label = "reset";
-			gpios = <&gpio 38 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio1 6 GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_WPS_BUTTON>;
 		};
 	};
@@ -48,43 +48,43 @@
 
 &state_default {
 	gpio {
-		groups = "gpio";
-		function = "gpio";
+		ralink,group = "gpio";
+		ralink,function = "gpio";
 	};
 
 	perst {
-		groups = "perst";
-		function = "gpio";
+		ralink,group = "perst";
+		ralink,function = "gpio";
 	};
 
 	refclk {
-		groups = "refclk";
-		function = "gpio";
+		ralink,group = "refclk";
+		ralink,function = "gpio";
 	};
 
 	i2s {
-		groups = "i2s";
-		function = "gpio";
+		ralink,group = "i2s";
+		ralink,function = "gpio";
 	};
 
 	spis {
-		groups = "spis";
-		function = "gpio";
+		ralink,group = "spis";
+		ralink,function = "gpio";
 	};
 
 	wled_kn {
-		groups = "wled_kn";
-		function = "gpio";
+		ralink,group = "wled_kn";
+		ralink,function = "gpio";
 	};
 
 	wled_an {
-		groups = "wled_an";
-		function = "wled_an";
+		ralink,group = "wled_an";
+		ralink,function = "wled_an";
 	};
 
 	wdt {
-		groups = "wdt";
-		function = "gpio";
+		ralink,group = "wdt";
+		ralink,function = "gpio";
 	};
 };
 

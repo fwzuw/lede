@@ -1,3 +1,4 @@
+#!/bin/sh
 #
 # Copyright (C) 2018 Weijie Gao <hackpascal@gmail.com>
 #

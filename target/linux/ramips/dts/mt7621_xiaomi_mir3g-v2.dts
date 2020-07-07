@@ -15,7 +15,6 @@
 		led-failsafe = &led_status_yellow;
 		led-running = &led_status_blue;
 		led-upgrade = &led_status_yellow;
-		label-mac-device = &wan;
 	};
 
 	chosen {
@@ -27,12 +26,12 @@
 
 		led_status_blue: status_blue {
 			label = "mir3gv2:blue:status";
-			gpios = <&gpio 8 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio0 8 GPIO_ACTIVE_LOW>;
 		};
 
 		led_status_yellow: status_yellow {
 			label = "mir3gv2:yellow:status";
-			gpios = <&gpio 10 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio0 10 GPIO_ACTIVE_LOW>;
 		};
 	};
 
@@ -41,7 +40,7 @@
 
 		reset {
 			label = "reset";
-			gpios = <&gpio 18 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio0 18 GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_RESTART>;
 		};
 	};
@@ -50,7 +49,7 @@
 &spi0 {
 	status = "okay";
 
-	flash@0 {
+	m25p80@0 {
 		compatible = "jedec,spi-nor";
 		reg = <0>;
 		spi-max-frequency = <80000000>;
@@ -133,32 +132,14 @@
 	};
 };
 
-&gmac0 {
+&ethernet {
 	mtd-mac-address = <&factory 0xe000>;
-};
-
-&switch0 {
-	ports {
-		port@2 {
-			status = "okay";
-			label = "lan2";
-		};
-
-		port@3 {
-			status = "okay";
-			label = "lan1";
-		};
-		wan: port@4 {
-			status = "okay";
-			label = "wan";
-			mtd-mac-address = <&factory 0xe006>;
-		};
-	};
+	mediatek,portmap = "llllw";
 };
 
 &state_default {
 	gpio {
-		groups = "jtag", "uart2", "uart3", "wdt";
-		function = "gpio";
+		ralink,group = "jtag", "uart2", "uart3", "wdt";
+		ralink,function = "gpio";
 	};
 };

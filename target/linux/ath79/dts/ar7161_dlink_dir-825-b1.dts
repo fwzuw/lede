@@ -17,6 +17,10 @@
 		led-upgrade = &led_power_orange;
 	};
 
+	chosen {
+		bootargs = "console=ttyS0,115200";
+	};
+
 	extosc: ref {
 		compatible = "fixed-clock";
 		#clock-cells = <0>;

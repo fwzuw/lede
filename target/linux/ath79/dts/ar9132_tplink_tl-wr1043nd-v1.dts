@@ -112,7 +112,6 @@
 		compatible = "jedec,spi-nor";
 		reg = <0>;
 		spi-max-frequency = <25000000>;
-		m25p,fast-read;
 
 		partitions {
 			compatible = "fixed-partitions";

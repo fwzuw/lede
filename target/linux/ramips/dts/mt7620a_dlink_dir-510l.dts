@@ -131,7 +131,7 @@
 
 &state_default {
 	default {
-		groups = "i2c", "uartf";
-		function = "gpio";
+		ralink,group = "i2c", "uartf";
+		ralink,function = "gpio";
 	};
 };

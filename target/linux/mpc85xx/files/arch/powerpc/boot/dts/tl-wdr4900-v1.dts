@@ -28,7 +28,6 @@
 		led-failsafe = &system_green;
 		led-running = &system_green;
 		led-upgrade = &system_green;
-		label-mac-device = &enet0;
 	};
 
 	memory {
@@ -49,7 +48,7 @@
 					#address-cells = <1>;
 					#size-cells = <1>;
 
-					uboot: partition@0 {
+					partition@0 {
 						reg = <0x0 0x0050000>;
 						label = "u-boot";
 						read-only;
@@ -67,7 +66,7 @@
 						label = "firmware";
 					};
 
-					partition@fe0000 {
+					config: partition@fe0000 {
 						reg = <0x00fe0000 0x00010000>;
 						label = "config";
 						read-only;
@@ -119,7 +118,7 @@
 		enet0: ethernet@b0000 {
 			phy-handle = <&phy0>;
 			phy-connection-type = "rgmii-id";
-			mtd-mac-address = <&uboot 0x4fc00>;
+			mtd-mac-address = <&config 0x144>;
 		};
 
 		enet1: ethernet@b1000 {

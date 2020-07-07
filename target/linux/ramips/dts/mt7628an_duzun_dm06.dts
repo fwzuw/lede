@@ -14,13 +14,13 @@
 
 		reset {
 			label = "reset";
-			gpios = <&gpio 46 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio1 14 GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_RESTART>;
 		};
 
 		wps {
 			label = "wps";
-			gpios = <&gpio 38 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio1 6 GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_WPS_BUTTON>;
 		};
 	};
@@ -50,9 +50,13 @@
 
 &state_default {
 	gpio {
-		groups = "wdt", "uart1";
-		function = "gpio";
+		ralink,group = "wdt", "uart1";
+		ralink,function = "gpio";
 	};
+};
+
+&gpio1 {
+	status = "okay";
 };
 
 &i2c {
@@ -94,7 +98,7 @@
 &spi0 {
 	status = "okay";
 
-	flash@0 {
+	m25p80@0 {
 		compatible = "jedec,spi-nor";
 		reg = <0>;
 		spi-max-frequency = <60000000>;

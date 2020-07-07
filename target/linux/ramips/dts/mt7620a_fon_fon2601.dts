@@ -100,16 +100,16 @@
 
 &state_default {
 	gpio {
-		groups = "i2c", "uartf";
-		function = "gpio";
+		ralink,group = "i2c", "uartf";
+		ralink,function = "gpio";
 	};
 	nd_sd {
-		groups = "nd_sd";
-		function = "sd";
+		ralink,group = "nd_sd";
+		ralink,function = "sd";
 	};
 	spi_cs {
-		groups = "spi refclk";
-		function = "spi refclk";
+		ralink,group = "spi refclk";
+		ralink,function = "spi refclk";
 	};
 };
 
@@ -140,7 +140,7 @@
 };
 
 &wmac {
-	ralink,mtd-eeprom = <&factory 0x0>;
+	ralink,mtd-eeprom = <&factory 0>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pa_pins>, <&wled_pins>;
 };

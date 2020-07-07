@@ -27,9 +27,9 @@ platform_do_upgrade() {
 			fi
 		}
 		;;
-	mikrotik,routerboard-750gr3|\
-	mikrotik,routerboard-m11g|\
-	mikrotik,routerboard-m33g)
+	mikrotik,rb750gr3|\
+	mikrotik,rbm11g|\
+	mikrotik,rbm33g)
 		[ -z "$(rootfs_type)" ] && mtd erase firmware
 		;;
 	asus,rt-ac65p|\
@@ -52,8 +52,6 @@ platform_do_upgrade() {
 	netgear,r6700-v2|\
 	netgear,r6800|\
 	netgear,r6850|\
-	netgear,wac104|\
-	netgear,wac124|\
 	netis,wf2881|\
 	xiaomi,mir3g|\
 	xiaomi,mir3p|\
@@ -63,13 +61,12 @@ platform_do_upgrade() {
 		nand_do_upgrade "$1"
 		;;
 	iodata,wn-ax1167gr2|\
-	iodata,wn-ax2033gr|\
 	iodata,wn-dx1167r)
 		iodata_mstc_upgrade_prepare
 		nand_do_upgrade "$1"
 		;;
-	ubnt,edgerouter-x|\
-	ubnt,edgerouter-x-sfp)
+	ubiquiti,edgerouterx|\
+	ubiquiti,edgerouterx-sfp)
 		platform_upgrade_ubnt_erx "$1"
 		;;
 	*)

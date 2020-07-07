@@ -71,7 +71,7 @@
 &spi0 {
 	status = "okay";
 
-	flash@0 {
+	m25p80@0 {
 		compatible = "jedec,spi-nor";
 		reg = <0>;
 		spi-max-frequency = <10000000>;
@@ -118,21 +118,19 @@
 
 &state_default {
 	gpio {
-		groups = "spi refclk", "rgmii1";
-		function = "gpio";
+		ralink,group = "spi refclk", "rgmii1";
+		ralink,function = "gpio";
 	};
 	wdt {
-		groups = "wdt";
-		function = "wdt refclk";
+		ralink,group = "wdt";
+		ralink,function = "wdt refclk";
 	};
 };
 
 &ethernet {
 	pinctrl-names = "default";
 	pinctrl-0 = <&ephy_pins>;
-
 	mtd-mac-address = <&factory 0x4>;
-
 	mediatek,portmap = "llllw";
 };
 
@@ -153,5 +151,5 @@
 };
 
 &wmac {
-	ralink,mtd-eeprom = <&factory 0x0>;
+	ralink,mtd-eeprom = <&factory 0>;
 };

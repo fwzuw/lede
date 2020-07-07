@@ -11,7 +11,6 @@ include $(INCLUDE_DIR)/image.mk
 FAT32_BLOCK_SIZE=1024
 FAT32_BLOCKS=$(shell echo $$(($(CONFIG_SUNXI_SD_BOOT_PARTSIZE)*1024*1024/$(FAT32_BLOCK_SIZE))))
 
-DEVICE_VARS := SUNXI_DTS SUNXI_DTS_DIR
 KERNEL_LOADADDR:=0x40008000
 
 define Build/sunxi-sdcard
@@ -33,6 +32,7 @@ endef
 # why \x00\x00\x00\x00 for zImage-initramfs
 define Device/Default
   PROFILES := Default
+  DEVICE_VARS := SUNXI_DTS SUNXI_DTS_DIR SUNXI_UBOOT
   KERNEL_NAME := zImage
   KERNEL := kernel-bin | uImage none
   IMAGES := sdcard.img.gz
@@ -42,6 +42,16 @@ define Device/Default
   SUNXI_DTS = $$(SUNXI_DTS_DIR)$$(SOC)-$(lastword $(subst _, ,$(1)))
 endef
 
-include $(SUBTARGET).mk
+ifeq ($(SUBTARGET),cortexa7)
+include cortex-a7.mk
+endif
+
+ifeq ($(SUBTARGET),cortexa8)
+include cortex-a8.mk
+endif
+
+ifeq ($(SUBTARGET),cortexa53)
+include cortex-a53.mk
+endif
 
 $(eval $(call BuildImage))

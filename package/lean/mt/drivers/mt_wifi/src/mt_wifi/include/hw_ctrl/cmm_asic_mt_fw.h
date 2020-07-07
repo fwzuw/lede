@@ -63,13 +63,6 @@ VOID MtAsicSetWcidAAD_OMByFw(
 	IN UCHAR wcid_idx,
 	IN UCHAR value);
 #endif /* HTC_DECRYPT_IOT */
-#ifdef MBSS_AS_WDS_AP_SUPPORT
-VOID MtAsicSetWcid4Addr_HdrTransByFw(
-	IN struct _RTMP_ADAPTER * pAd,
-	IN UCHAR wcid_idx,
-	IN UCHAR IsEnable,
-	IN UCHAR IsApcliEntry);
-#endif
 
 VOID MtAsicUpdateRxWCIDTableByFw(
 	IN struct _RTMP_ADAPTER *pAd,
@@ -102,8 +95,7 @@ VOID MtAsicUpdateProtectByFw(
 
 
 VOID MtAsicUpdateRtsThldByFw(
-	struct _RTMP_ADAPTER *pAd, struct wifi_dev *wdev, UCHAR pkt_num, UINT32 length,
-	UCHAR retry_limit);
+	struct _RTMP_ADAPTER *pAd, struct wifi_dev *wdev, UCHAR pkt_num, UINT32 length);
 
 VOID MtSetTmrCRByFw(struct _RTMP_ADAPTER *pAd, UCHAR enable, UCHAR BandIdx);
 #define BA_TRIGGER_OFFLOAD_TIMEOUT 1000

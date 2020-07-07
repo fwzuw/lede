@@ -43,9 +43,6 @@ struct __EC_GROUP_INFO *get_ecc_group_info(
 EC_GROUP_INFO_BI *get_ecc_group_info_bi(
 	IN INT32 group);
 
-VOID group_info_bi_deinit(
-	VOID);
-
 VOID ecc_point_init(
 	IN BIG_INTEGER_EC_POINT * *ec_point_res);
 

@@ -45,9 +45,7 @@ typedef struct _MONT_STRUC  MONT_STRUC, *PMONT_STRUC;
 
 /* BigInteger definition & structure */
 #define SLIDING_WINDOW 16
-#ifndef DOT11_SAE_OPENSSL_BN
 /*#define BI_POOL*/
-#endif
 /*#define BI_TIME_REC */
 /*#define BI_POOL_DBG*/
 
@@ -261,10 +259,7 @@ VOID BigInteger_Montgomery_ExpMod_with_mont(
 	IN MONT_STRUC * mont,
 	OUT PBIG_INTEGER * pBI_Result);
 
-UCHAR BigInteger_is_zero(IN PBIG_INTEGER pBI);
-
-UCHAR BigInteger_is_one(IN PBIG_INTEGER pBI);
-
+#ifdef DOT11_SAE_SUPPORT
 VOID BigInteger_Mod(
 	IN PBIG_INTEGER pFirstOperand,
 	IN PBIG_INTEGER pSecondOperand,
@@ -275,6 +270,13 @@ VOID BigInteger_Mod_Mul(
 	IN PBIG_INTEGER pSecondOperand,
 	IN PBIG_INTEGER pBI_P,
 	OUT PBIG_INTEGER *pBI_Result);
+
+
+UCHAR BigInteger_is_zero(
+	IN PBIG_INTEGER pBI);
+
+UCHAR BigInteger_is_one(
+	IN PBIG_INTEGER pBI);
 
 UCHAR BigInteger_is_odd(
 	IN PBIG_INTEGER pBI);
@@ -408,8 +410,7 @@ VOID BigInteger_DtoH(
 
 VOID BigInteger_dump_time(
 	VOID);
-
-INT BigInteger_rand_range(IN BIG_INTEGER * range, INOUT BIG_INTEGER * r);
+#endif
 
 
 #endif /* __CRYPT_BIGINTEGER_H__ */

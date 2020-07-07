@@ -48,13 +48,13 @@
 };
 
 &wmac {
-	ralink,mtd-eeprom = <&factory 0x0>;
+	ralink,mtd-eeprom = <&factory 0>;
 };
 
 &state_default {
 	gpio {
-		groups = "i2c", "jtag";
-		function = "gpio";
+		ralink,group = "i2c", "jtag";
+		ralink,function = "gpio";
 	};
 };
 

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #
 # Copyright (C) 2016 Josua Mayer
 #
@@ -41,7 +41,7 @@ if [ -n "$BOOTLOADER" ]; then
 fi
 
 # generate image file
-printf "Creating %s from /dev/zero: " "$OUTFILE"
+printf "Creating $OUTFILE from /dev/zero: "
 dd if=/dev/zero of="$OUTFILE" bs=512 count=1 >/dev/null
 printf "Done\n"
 
@@ -79,6 +79,6 @@ while [ "$#" -ge 2 ]; do
 	) | dd of="$OUTFILE" bs=512 seek=$(($1 / 512)) conv=notrunc 2>/dev/null
 	printf "Done\n"
 
-	i=$((i+1))
+	let i=i+1
 	shift; shift
 done

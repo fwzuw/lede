@@ -12,7 +12,6 @@ define Package/vxlan
   MAINTAINER:=Matthias Schiffer <mschiffer@universe-factory.net>
   TITLE:=Virtual eXtensible LAN config support
   DEPENDS:=+kmod-vxlan
-  PKGARCH:=all
 endef
 
 define Package/vxlan/description

@@ -215,18 +215,10 @@ BOOLEAN RTMPSpoofedMgmtDetection(
 			rssi_info.raw_rssi[0] = rxblk->rx_signal.raw_rssi[0];
 			rssi_info.raw_rssi[1] = rxblk->rx_signal.raw_rssi[1];
 			rssi_info.raw_rssi[2] = rxblk->rx_signal.raw_rssi[2];
-#if defined(CUSTOMER_DCC_FEATURE) || defined(CONFIG_MAP_SUPPORT)
-			rssi_info.raw_rssi[3] = rxblk->rx_signal.raw_rssi[3];
-#endif
 			RcvdRssi = RTMPMaxRssi(pAd,
 								   ConvertToRssi(pAd, &rssi_info, RSSI_IDX_0),
 								   ConvertToRssi(pAd, &rssi_info, RSSI_IDX_1),
-								   ConvertToRssi(pAd, &rssi_info, RSSI_IDX_2)
-#if defined(CUSTOMER_DCC_FEATURE) || defined(CONFIG_MAP_SUPPORT)
-									, ConvertToRssi(pAd, &rssi_info, RSSI_IDX_3)
-#endif
-
-								   );
+								   ConvertToRssi(pAd, &rssi_info, RSSI_IDX_2));
 
 			switch (FC->SubType) {
 			case SUBTYPE_ASSOC_RSP:
@@ -284,11 +276,7 @@ VOID RTMPConflictSsidDetection(
 	IN UCHAR			SsidLen,
 	IN CHAR				Rssi0,
 	IN CHAR				Rssi1,
-	IN CHAR				Rssi2
-#if defined(CUSTOMER_DCC_FEATURE) || defined(CONFIG_MAP_SUPPORT)
-	, IN CHAR				Rssi3
-#endif
-)
+	IN CHAR				Rssi2)
 {
 	INT	i;
 
@@ -301,17 +289,9 @@ VOID RTMPConflictSsidDetection(
 			rssi_info.raw_rssi[0] = Rssi0;
 			rssi_info.raw_rssi[1] = Rssi1;
 			rssi_info.raw_rssi[2] = Rssi2;
-#if defined(CUSTOMER_DCC_FEATURE) || defined(CONFIG_MAP_SUPPORT)
-			rssi_info.raw_rssi[3] = Rssi3;
-#endif
-
 			RcvdRssi = RTMPMaxRssi(pAd, ConvertToRssi(pAd, &rssi_info, RSSI_IDX_0),
 								   ConvertToRssi(pAd, &rssi_info, RSSI_IDX_1),
-								   ConvertToRssi(pAd, &rssi_info, RSSI_IDX_2)
-#if defined(CUSTOMER_DCC_FEATURE) || defined(CONFIG_MAP_SUPPORT)
-									, ConvertToRssi(pAd, &rssi_info, RSSI_IDX_3)
-#endif
-								   );
+								   ConvertToRssi(pAd, &rssi_info, RSSI_IDX_2));
 			pAd->ApCfg.MBSSID[i].RcvdConflictSsidCount++;
 			pAd->ApCfg.MBSSID[i].RssiOfRcvdConflictSsid = RcvdRssi;
 			return;
@@ -336,17 +316,9 @@ BOOLEAN RTMPReplayAttackDetection(
 			rssi_info.raw_rssi[0] = rxblk->rx_signal.raw_rssi[0];
 			rssi_info.raw_rssi[1] = rxblk->rx_signal.raw_rssi[1];
 			rssi_info.raw_rssi[2] = rxblk->rx_signal.raw_rssi[2];
-#if defined(CUSTOMER_DCC_FEATURE) || defined(CONFIG_MAP_SUPPORT)
-			rssi_info.raw_rssi[3] = rxblk->rx_signal.raw_rssi[3];
-#endif
 			RcvdRssi = RTMPMaxRssi(pAd, ConvertToRssi(pAd, &rssi_info, RSSI_IDX_0),
 								   ConvertToRssi(pAd, &rssi_info, RSSI_IDX_1),
-								   ConvertToRssi(pAd, &rssi_info, RSSI_IDX_2)
-#if defined(CUSTOMER_DCC_FEATURE) || defined(CONFIG_MAP_SUPPORT)
-								   , ConvertToRssi(pAd, &rssi_info, RSSI_IDX_3)
-#endif
-
-								   );
+								   ConvertToRssi(pAd, &rssi_info, RSSI_IDX_2));
 			pAd->ApCfg.MBSSID[i].RcvdReplayAttackCount++;
 			pAd->ApCfg.MBSSID[i].RssiOfRcvdReplayAttack = RcvdRssi;
 			return TRUE;

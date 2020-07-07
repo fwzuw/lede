@@ -615,10 +615,7 @@ VOID RRM_CfgInit(
 			pRrmCfg->bDot11kRRMEnable = FALSE; /* set to default off */
 
 		pRrmCfg->bDot11kRRMNeighborRepTSFEnable = FALSE;
-#ifndef HOSTAPD_11K_SUPPORT
 		init_rrm_capabilities(pRrmCfg, &pAd->ApCfg.MBSSID[loop]);
-#endif
-
 	}
 
 	return;
@@ -755,19 +752,13 @@ VOID RRM_BeaconReportHandler(
 	IN struct wifi_dev *pWdev,
 	IN PRRM_BEACON_REP_INFO pBcnRepInfo,
 	IN LONG Length,
-	IN PMEASURE_REQ_ENTRY pDialogEntry
+	IN PMEASURE_REQ_ENTRY pDialogEntry)
 #else
 	IN PRTMP_ADAPTER pAd,
 	IN struct wifi_dev *pWdev,
 	IN PRRM_BEACON_REP_INFO pBcnRepInfo,
-	IN LONG Length
+	IN LONG Length)
 #endif /* CONFIG_11KV_API_SUPPORT */
-#if defined(CUSTOMER_DCC_FEATURE) || defined(CONFIG_MAP_SUPPORT)
-	,
-	IN UCHAR	*Snr,
-	IN CHAR 	*rssi
-#endif
-	)
 {
 	CHAR Rssi;
 	USHORT LenVIE = 0;
@@ -893,11 +884,7 @@ VOID RRM_BeaconReportHandler(
 
 	if (bFrameBody) {
 		ie_list->FromBcnReport = TRUE;
-		Idx = BssTableSetEntry(pAd, &pAd->ScanTab, ie_list, Rssi, LenVIE, pVIE
-#if defined(CUSTOMER_DCC_FEATURE) || defined(CONFIG_MAP_SUPPORT)
-							, Snr, rssi
-#endif /* CONFIG_AP_SUPPORT */
-					);
+		Idx = BssTableSetEntry(pAd, &pAd->ScanTab, ie_list, Rssi, LenVIE, pVIE);
 
 		if (Idx != BSS_NOT_FOUND) {
 			BSS_ENTRY *pBssEntry = &pAd->ScanTab.BssEntry[Idx];
@@ -942,19 +929,6 @@ VOID RRM_PeerMeasureRepAction(
 	BOOLEAN Cancelled;
 	PNET_DEV NetDev = NULL;
 #endif /* CONFIG_11KV_API_SUPPORT */
-#endif
-#if defined(CUSTOMER_DCC_FEATURE) || defined(CONFIG_MAP_SUPPORT)
-		UCHAR Snr[4] = {0};
-		CHAR  rssi[4] = {0};
-		Snr[0] = ConvertToSnr(pAd, Elem->rssi_info.raw_Snr[0]);
-		Snr[1] = ConvertToSnr(pAd, Elem->rssi_info.raw_Snr[1]);
-		Snr[2] = ConvertToSnr(pAd, Elem->rssi_info.raw_Snr[2]);
-		Snr[3] = ConvertToSnr(pAd, Elem->rssi_info.raw_Snr[3]);
-
-		rssi[0] = ConvertToRssi(pAd, &Elem->rssi_info, RSSI_IDX_0);
-		rssi[1] = ConvertToRssi(pAd, &Elem->rssi_info, RSSI_IDX_1);
-		rssi[2] = ConvertToRssi(pAd, &Elem->rssi_info, RSSI_IDX_2);
-		rssi[3] = ConvertToRssi(pAd, &Elem->rssi_info, RSSI_IDX_3);
 #endif
 
 	MTWF_LOG(DBG_CAT_PROTO, CATPROTO_RRM, DBG_LVL_TRACE, ("%s::\n", __func__));
@@ -1042,12 +1016,7 @@ VOID RRM_PeerMeasureRepAction(
 									pEntry->wdev,
 									pMeasureRep,
 									BcnRepLen,
-									pDialogEntry
-#if defined(CUSTOMER_DCC_FEATURE) || defined(CONFIG_MAP_SUPPORT)
-									, Snr, rssi
-#endif
-
-									);
+									pDialogEntry);
 				} else {
 					if (ReportMode.field.Refused) {
 						MTWF_LOG(DBG_CAT_PROTO, CATPROTO_RRM, DBG_LVL_TRACE,
@@ -1073,13 +1042,9 @@ VOID RRM_PeerMeasureRepAction(
 					RRM_BeaconReportHandler(pAd,
 								pEntry->wdev,
 								pMeasureRep,
-								BcnRepLen
-#if defined(CUSTOMER_DCC_FEATURE) || defined(CONFIG_MAP_SUPPORT)
-								, Snr, rssi
-#endif
-							);
+								BcnRepLen);
 #if defined(WAPP_SUPPORT)
-				wapp_send_bcn_report(pAd, pEntry, eid_ptr->Octet, eid_ptr->Len);
+					wapp_send_bcn_report(pAd, pEntry, eid_ptr->Octet + 3, BcnRepLen);
 #endif
 #endif /* CONFIG_11KV_API_SUPPORT */
 			}
@@ -1105,7 +1070,6 @@ int rrm_MsgHandle(PRTMP_ADAPTER pAd, RTMP_IOCTL_INPUT_STRUCT *wrq)
 {
 	p_rrm_command_t p_rrm_command = NULL;
 	int status = NDIS_STATUS_FAILURE;
-	unsigned long real_copy_len = 0;
 
 	os_alloc_mem(NULL, (UCHAR **)&p_rrm_command, wrq->u.data.length);
 
@@ -1114,9 +1078,7 @@ int rrm_MsgHandle(PRTMP_ADAPTER pAd, RTMP_IOCTL_INPUT_STRUCT *wrq)
 		return NDIS_STATUS_FAILURE;
 	}
 
-	real_copy_len = copy_from_user(p_rrm_command, wrq->u.data.pointer, wrq->u.data.length);
-	if (real_copy_len != 0)
-		MTWF_LOG(DBG_CAT_PROTO, CATPROTO_RRM, DBG_LVL_OFF, ("(%s) %lu bytes that could not be copied", __func__, real_copy_len));
+	copy_from_user(p_rrm_command, wrq->u.data.pointer, wrq->u.data.length);
 
 	switch (p_rrm_command->command_id) {
 	case OID_802_11_RRM_CMD_ENABLE:
@@ -1330,27 +1292,6 @@ int rrm_send_beacon_req(RTMP_ADAPTER *pAd, p_bcn_req_data_t p_bcn_req_data)
 
 void init_rrm_capabilities(PRRM_CONFIG pRrmCfg, BSS_STRUCT *pMBss)
 {
-
-#ifdef HOSTAPD_11K_SUPPORT
-
-	pRrmCfg->max_rrm_capabilities.word = 0;
-	if (pRrmCfg->hstapd_nei_rep)
-		pRrmCfg->max_rrm_capabilities.field.NeighborRepCap = 1;
-
-	if (pRrmCfg->hstapd_lci) {
-		pRrmCfg->max_rrm_capabilities.field.LCIMeasureCap = 1;
-		pRrmCfg->max_rrm_capabilities.field.LCIAzimuthCap = 0;
-	}
-
-	pRrmCfg->max_rrm_capabilities.field.APChannelReportCap = 0;
-	pRrmCfg->max_rrm_capabilities.field.BeaconPassiveMeasureCap = 0;
-	pRrmCfg->max_rrm_capabilities.field.BeaconActiveMeasureCap = 0;
-	pRrmCfg->max_rrm_capabilities.field.BeaconTabMeasureCap = 0;
-	pRrmCfg->max_rrm_capabilities.field.APChannelReportCap = 0;
-	pRrmCfg->max_rrm_capabilities.field.BeaconMeasureReportCndCap = 0;
-	pRrmCfg->rrm_capabilities.word = pRrmCfg->max_rrm_capabilities.word;
-#else
-
 	pRrmCfg->max_rrm_capabilities.word = 0;
 	pRrmCfg->max_rrm_capabilities.field.NeighborRepCap = 1;
 	pRrmCfg->max_rrm_capabilities.field.BeaconPassiveMeasureCap = 1;
@@ -1358,7 +1299,6 @@ void init_rrm_capabilities(PRRM_CONFIG pRrmCfg, BSS_STRUCT *pMBss)
 	pRrmCfg->max_rrm_capabilities.field.BeaconTabMeasureCap = 1;
 	pRrmCfg->max_rrm_capabilities.field.APChannelReportCap = 1;
 	pRrmCfg->rrm_capabilities.word = pRrmCfg->max_rrm_capabilities.word;
-#endif
 }
 extern int DebugLevel;
 
@@ -2185,8 +2125,8 @@ void compose_rrm_BcnReq_ie(RTMP_ADAPTER *pAd,
 	TotalLen += (2 + 1);
 
 	if (p_beacon_req->detail == 1) {
-		RRM_InsertRequestIE_11KV_API(pAd, (pOutBuffer+FrameLen),
-			&FrameLen, p_beacon_req->request_len, p_beacon_req->request);
+		RRM_InsertRequestIE(pAd, (pOutBuffer+FrameLen),
+			&FrameLen, p_beacon_req->request, p_beacon_req->request_len);
 		TotalLen += (p_beacon_req->request_len + 2);
 	}
 

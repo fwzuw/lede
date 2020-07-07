@@ -18,14 +18,14 @@
 
 		led_indicator: indicator {
 			label = "wrtnode:blue:indicator";
-			gpios = <&gpio 41 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio1 9 GPIO_ACTIVE_LOW>;
 		};
 	};
 };
 
 &state_default {
 	gpio {
-		groups = "i2c", "gpio";
-		function = "gpio";
+		ralink,group = "i2c", "gpio";
+		ralink,function = "gpio";
 	};
 };

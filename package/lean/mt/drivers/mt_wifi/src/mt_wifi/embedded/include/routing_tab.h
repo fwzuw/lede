@@ -62,9 +62,6 @@ typedef struct _ROUTING_ENTRY {
 	UCHAR Wcid;
 	UINT32 IPAddr;
 	UCHAR Mac[MAC_ADDR_LEN];
-#ifdef A4_CONN
-	UCHAR NeedRefresh;
-#endif
 } ROUTING_ENTRY, *PROUTING_ENTRY;
 
 

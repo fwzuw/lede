@@ -16,12 +16,16 @@
 		led-upgrade = &led_status;
 	};
 
+	chosen {
+		bootargs = "console=ttyS0,57600";
+	};
+
 	leds {
 		compatible = "gpio-leds";
 
 		led_status: status {
 			label = "mac1200rv2:green:status";
-			gpios = <&gpio 11 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio0 11 GPIO_ACTIVE_LOW>;
 		};
 	};
 };
@@ -29,9 +33,9 @@
 &spi0 {
 	status = "okay";
 
-	flash@0 {
+	m25p80@0 {
 		compatible = "jedec,spi-nor";
-		reg = <0>;
+		reg = <0 0>;
 		spi-max-frequency = <10000000>;
 
 		partitions {

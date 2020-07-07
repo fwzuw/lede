@@ -111,15 +111,6 @@ struct fw_info fw_info[] = {
 		.sign = false,
 	},
 	{
-		.name = "SW",
-		.fw_layout = {
-			.kern_start	=	0x9f050000,
-			.kern_entry	=	0x80002000,
-			.firmware_max_length=	0x00760000,
-		},
-		.sign = false,
-	},
-	{
 		.name = "UBDEV01",
 		.fw_layout = {
 			.kern_start	=	0x9f050000,
@@ -130,24 +121,6 @@ struct fw_info fw_info[] = {
 	},
 	{
 		.name = "WA",
-		.fw_layout = {
-			.kern_start	=	0x9f050000,
-			.kern_entry	=	0x80002000,
-			.firmware_max_length=	0x00F60000,
-		},
-		.sign = true,
-	},
-	{
-		.name = "XC",
-		.fw_layout = {
-			.kern_start	=	0x9f050000,
-			.kern_entry	=	0x80002000,
-			.firmware_max_length=	0x00F60000,
-		},
-		.sign = true,
-	},
-	{
-		.name = "ACB-ISP",
 		.fw_layout = {
 			.kern_start	=	0x9f050000,
 			.kern_entry	=	0x80002000,
@@ -464,7 +437,6 @@ static int build_image(image_info_t* im)
 	if ((f = fopen(im->outputfile, "w")) == NULL)
 	{
 		ERROR("Can not create output file: '%s'\n", im->outputfile);
-		free(mem);
 		return -10;
 	}
 
@@ -472,8 +444,6 @@ static int build_image(image_info_t* im)
 	{
 		ERROR("Could not write %d bytes into file: '%s'\n",
 				mem_size, im->outputfile);
-		free(mem);
-		fclose(f);
 		return -11;
 	}
 

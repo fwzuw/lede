@@ -96,7 +96,7 @@
 
 &state_default {
 	default {
-		groups = "i2c", "uartf", "spi refclk", "ephy", "wled";
-		function = "gpio";
+		ralink,group = "i2c", "uartf", "spi refclk", "ephy", "wled";
+		ralink,function = "gpio";
 	};
 };

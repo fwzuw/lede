@@ -50,12 +50,7 @@ enum BCN_UPDATE_REASON {
 
 typedef enum _ENUM_UPDATE_PKT_TYPE_T {
 	PKT_BCN = 0,
-	PKT_TIM = 1,
-	/* add bcn v2 support , 1.5k beacon support */
-#ifdef BCN_V2_SUPPORT
-	PKT_V2_BCN = 2,
-	PKT_V2_TIM = 3,
-#endif
+	PKT_TIM
 } ENUM_UPDATE_PKT_TYPE_T;
 
 typedef enum _BCN_GEN_METHOD {

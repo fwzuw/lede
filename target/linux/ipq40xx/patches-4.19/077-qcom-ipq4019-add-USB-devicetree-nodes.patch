@@ -19,23 +19,23 @@ Signed-off-by: John Crispin <john@phrozen.org>
  		};
 +
 +		usb3_ss_phy: ssphy@9a000 {
-+			status = "okay";
++			status = "ok";
 +		};
 +
 +		usb3_hs_phy: hsphy@a6000 {
-+			status = "okay";
++			status = "ok";
 +		};
 +
 +		usb3: usb3@8af8800 {
-+			status = "okay";
++			status = "ok";
 +		};
 +
 +		usb2_hs_phy: hsphy@a8000 {
-+			status = "okay";
++			status = "ok";
 +		};
 +
 +		usb2: usb2@60f8800 {
-+			status = "okay";
++			status = "ok";
 +		};
  	};
  };

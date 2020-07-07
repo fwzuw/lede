@@ -36,7 +36,7 @@
 #define WaitPeerBTMRspTimeoutVale (15*1000)
 #define WaitPeerBTMReqTimeoutVale (30*1000)
 #else
-#define WaitPeerBTMRspTimeoutVale 4000
+#define WaitPeerBTMRspTimeoutVale 2048
 #define WaitPeerBTMReqTimeoutVale (1024)
 #endif /* CONFIG_11KV_API_SUPPORT */
 
@@ -70,7 +70,6 @@ enum BTM_EVENT {
 	BTM_REQ,
 	BTM_REQ_IE,
 	BTM_REQ_PARAM,
-	BTM_REQ_FRAME,
 	BTM_RSP,
 	PEER_BTM_REQ,
 	PEER_BTM_RSP,
@@ -187,12 +186,6 @@ enum IPTYPE {
 #endif /* BB_SOC */
 
 struct _BSS_STRUCT;
-
-typedef struct GNU_PACKED _BTM_REQUEST_PARAM{
-	UINT8 request_mode;
-	UINT16 disassociation_timer;
-	UINT8 validity_interval;
-} BTM_REQUEST_PARAM, *PBTM_REQUEST_PARAM;
 
 BOOLEAN IsGratuitousARP(IN PRTMP_ADAPTER pAd,
 						IN PUCHAR pData,
@@ -456,10 +449,5 @@ VOID RRM_InsertPreferenceSubIE(
 
 
 
-#ifdef CONFIG_DOT11V_WNM
-INT Set_SendBTMReq_Proc(
-	IN PRTMP_ADAPTER pAd,
-	IN RTMP_STRING	*arg);
-#endif
 #endif /* __WNM_H__ */
 

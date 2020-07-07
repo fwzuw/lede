@@ -75,18 +75,17 @@
 
 &ethernet {
 	mtd-mac-address = <&factory 0x4>;
-
 	mediatek,portmap = "wllll";
 };
 
 &wmac {
-	ralink,mtd-eeprom = <&factory 0x0>;
+	ralink,mtd-eeprom = <&factory 0>;
 };
 
 &state_default {
 	default {
-		groups = "i2c", "uartf", "wled", "spi refclk", "pa";
-		function = "gpio";
+		ralink,group = "i2c", "uartf", "wled", "spi refclk", "pa";
+		ralink,function = "gpio";
 	};
 };
 

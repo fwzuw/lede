@@ -38,7 +38,7 @@ define Device/netgear_ath79
   KERNEL := kernel-bin | append-dtb | lzma -d20 | netgear-uImage lzma
   IMAGES += factory.img
   IMAGE/sysupgrade.bin := $$(IMAGE/default) | append-metadata | \
-	check-size
+	check-size $$$$(IMAGE_SIZE)
   IMAGE/factory.img := $$(IMAGE/default) | netgear-dni | \
-	check-size
+	check-size $$$$(IMAGE_SIZE)
 endef

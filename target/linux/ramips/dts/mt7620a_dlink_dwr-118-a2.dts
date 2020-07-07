@@ -129,8 +129,8 @@
 
 &state_default {
 	default {
-		groups = "ephy", "uartf", "spi refclk", "wled";
-		function = "gpio";
+		ralink,group = "ephy", "uartf", "spi refclk", "wled";
+		ralink,function = "gpio";
 	};
 };
 
@@ -153,10 +153,10 @@
 };
 
 &ethernet {
+	status = "okay";
+	mediatek,portmap = "wllll";
 	pinctrl-names = "default";
 	pinctrl-0 = <&rgmii1_pins &mdio_pins>;
-
-	mediatek,portmap = "wllll";
 
 	port@4 {
 		status = "okay";

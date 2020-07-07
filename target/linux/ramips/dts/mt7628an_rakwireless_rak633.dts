@@ -15,15 +15,15 @@
 
 		wifi {
 			label = "rak633:blue:wifi";
-			gpios = <&gpio 44 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio1 12 GPIO_ACTIVE_LOW>;
 		};
 	};
 };
 
 &state_default {
 	wled_an {
-		groups = "wled_an";
-		function = "gpio";
+		ralink,group = "wled_an";
+		ralink,function = "gpio";
 	};
 };
 

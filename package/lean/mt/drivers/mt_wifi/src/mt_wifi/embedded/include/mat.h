@@ -49,9 +49,6 @@
 #ifndef ETH_P_PPP_SES
 #define ETH_P_PPP_SES   0x8864          /* PPPoE session messages       */
 #endif
-#ifndef ETH_P_VLAN
-#define ETH_P_VLAN   0x8100         	/* VLAN packet       */
-#endif
 
 /* ARP protocol HARDWARE identifiers. */
 #ifndef ARPHRD_ETHER

@@ -40,12 +40,7 @@ VOID RTMPConflictSsidDetection(
 	IN UCHAR			SsidLen,
 	IN CHAR				Rssi0,
 	IN CHAR				Rssi1,
-	IN CHAR				Rssi2
-#if defined(CUSTOMER_DCC_FEATURE) || defined(CONFIG_MAP_SUPPORT)
-	,
-	IN CHAR 			Rssi3
-#endif
-	);
+	IN CHAR				Rssi2);
 
 BOOLEAN RTMPReplayAttackDetection(
 	IN RTMP_ADAPTER * pAd,

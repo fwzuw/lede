@@ -25,6 +25,7 @@ dev
 dev_node
 dev_type
 dh
+down
 ecdh_curve
 echo
 engine
@@ -102,6 +103,7 @@ route_metric
 route_pre_down
 route_up
 rport
+script_security
 secret
 server
 server_bridge
@@ -125,6 +127,7 @@ tran_window
 tun_mtu
 tun_mtu_extra
 txqueuelen
+up
 user
 verb
 verify_client_cert
@@ -188,7 +191,6 @@ username_as_common_name
 '
 
 OPENVPN_LIST='
-ncp_ciphers
 tls_cipher
-tls_ciphersuites
+ncp_ciphers
 '

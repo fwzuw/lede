@@ -3,9 +3,13 @@
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
 
-#include "qca955x.dtsi"
+#include "qca9557.dtsi"
 
 / {
+	chosen {
+		bootargs = "console=ttyS0,115200n8";
+	};
+
 	aliases {
 		led-boot = &led_system;
 		led-failsafe = &led_system;
@@ -102,14 +106,14 @@
 	flash@0 {
 		compatible = "jedec,spi-nor";
 		reg = <0>;
-		spi-max-frequency = <33400000>;
+		spi-max-frequency = <25000000>;
 
 		partitions {
 			compatible = "fixed-partitions";
 			#address-cells = <1>;
 			#size-cells = <1>;
 
-			uboot: partition@0 {
+			uboot:	partition@0 {
 				label = "u-boot";
 				reg = <0x000000 0x020000>;
 				read-only;

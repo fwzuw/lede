@@ -21,23 +21,23 @@
 
 		led_indicator: indicator {
 			label = "wrtnode:blue:indicator";
-			gpios = <&gpio 44 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio1 12 GPIO_ACTIVE_LOW>;
 		};
 	};
 };
 
 &state_default {
 	gpio {
-		groups = "gpio";
-		function = "gpio";
+		ralink,group = "gpio";
+		ralink,function = "gpio";
 	};
 };
 
 &pinctrl {
 	led_pins: led {
 		gpio {
-			groups = "wled_an";
-			function = "gpio";
+			ralink,group = "wled_an";
+			ralink,function = "gpio";
 		};
 	};
 };
